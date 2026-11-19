@@ -1,4 +1,5 @@
 import type { User } from '../src/domain/types.js';
+import type { ModelClient } from '../src/model/client.js';
 import { createMemoryRepos } from '../src/repos/memory.js';
 import { createServices } from '../src/services/index.js';
 import { hashPassword } from '../src/services/password.js';
@@ -9,10 +10,16 @@ export const TODAY = '2026-11-19';
 export const TOMORROW = '2026-11-20';
 
 /** A small world: two labs, a student, a second student, a teacher of lab 1, a teacher of lab 2, an admin. */
-export async function makeWorld(options: { now?: () => Date } = {}) {
+export async function makeWorld(options: { model?: ModelClient | null; modelTimeoutMs?: number; now?: () => Date } = {}) {
   const repos = createMemoryRepos();
   const clock = options.now ?? (() => NOW);
-  const services = createServices(repos, { clock });
+  const logs: string[] = [];
+  const services = createServices(repos, {
+    model: options.model ?? null,
+    modelTimeoutMs: options.modelTimeoutMs ?? 200,
+    clock,
+    log: (m) => logs.push(m),
+  });
   const network = await repos.labs.create({ name: 'Мрежи', building: 'Блок 1', capacity: 20, description: 'Cisco' });
   const robots = await repos.labs.create({ name: 'Роботика', building: 'Блок 2', capacity: 4, description: '3D принтер' });
 
@@ -27,7 +34,7 @@ export async function makeWorld(options: { now?: () => Date } = {}) {
   await repos.labs.addSupervisor(network.id, teacher.id);
   await repos.labs.addSupervisor(robots.id, otherTeacher.id);
 
-  return { repos, services, labs: { network, robots }, users: { student, other, teacher, otherTeacher, admin } };
+  return { repos, services, logs, labs: { network, robots }, users: { student, other, teacher, otherTeacher, admin } };
 }
 
 /** Asserts that a promise rejects with an AppError of the given HTTP status. */
@@ -40,4 +47,13 @@ export async function rejectsWith(promise: Promise<unknown>, status: number): Pr
     return error as Error;
   }
   throw new Error(`Expected a rejection with status ${status}, but it resolved`);
+}
+
+export class FakeModel implements ModelClient {
+  prompts: string[] = [];
+  constructor(private readonly answer: (prompt: string, signal: AbortSignal) => Promise<string>) {}
+  generate(prompt: string, signal: AbortSignal): Promise<string> {
+    this.prompts.push(prompt);
+    return this.answer(prompt, signal);
+  }
 }
