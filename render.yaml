@@ -1,0 +1,26 @@
+# Render Blueprint. Secrets are marked sync: false and are entered in the Render dashboard, never here.
+services:
+  - type: web
+    name: lab-booking
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: BASE_URL
+        sync: false # e.g. https://lab-booking.onrender.com
+      - key: DATABASE_URL
+        sync: false # Neon connection string
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: MODEL_TIMEOUT_MS
+        value: "8000"
