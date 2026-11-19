@@ -1,0 +1,33 @@
+{
+  "name": "lab-booking",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Резервация на лаборатории: students book a lab for an hour, the supervising teacher approves, the calendar shows what is free.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.8"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.web.json",
+    "build:web": "tsc -p tsconfig.web.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.web.json --noEmit",
+    "start": "node dist/main.js",
+    "dev": "tsc -p tsconfig.web.json && tsx watch src/main.ts",
+    "migrate": "node dist/db/migrate.js",
+    "migrate:dev": "tsx src/db/migrate.ts",
+    "seed": "node dist/seed.js",
+    "seed:dev": "tsx src/seed.ts",
+    "mcp": "tsx src/mcp/main.ts",
+    "test": "node --import tsx --test --experimental-test-coverage --test-coverage-include=src/** --test-coverage-include=web/src/** --test-coverage-lines=80 --test-coverage-branches=80 --test-coverage-functions=80 \"test/**/*.test.ts\"",
+    "check:ac": "tsx scripts/check-ac.ts"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.20.0",
+    "typescript": "^6.0.0"
+  }
+}
